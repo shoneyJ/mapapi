@@ -1,7 +1,30 @@
-//Import the below modules using "npm i -save request oauth-1.0a crypto"
-import OAuth from "./oauth-1.0a";
+import OAuth from "./oauth-1.0a.js";
 // Call the API
 // This is a POST request, because we need the API to generate a new token for us
+console.log('whats up!')
+console.log('encrypted', CryptoJS.AES.encrypt('themessage', 'thekey'))
+
+// Initialize
+const oauth = OAuth({
+    consumer: {
+        key: '39KFTkbvunKUUTmzhZ7x1Q',
+        secret: '_03_HqCLQZpOOCSSmWfwincN_pVkUJQFxH1un2dOLsIu1Lhf0Vk6zxJapSG9J-W9Oz-o7g_TUexO1Tt_S0t0Yw',
+    },
+    signature_method: 'HMAC-SHA1',
+    hash_function(base_string, key) {
+        return CryptoJS
+            .createHmac('sha1', key)
+            .update(base_string)
+            .digest('base64')
+    },
+})
+const request_data = {
+    url: 'https://account.api.here.com/oauth2/token',
+    method: 'POST',
+    data: { grant_type: 'client_credentials' },
+};
+console.log(oauth.toHeader(oauth.authorize(request_data)));
+
 fetch('https://account.api.here.com/oauth2/token', {
     method: 'POST',
     body: 'grant_type=client_credentials',
