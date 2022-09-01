@@ -1,1 +1,2 @@
-/* Center the container */ #container { padding-top:50px; margin:0 auto; width:480px; } /* Give canvas a background */ 
+body { width: 100%; height: 100%; position: absolute; margin: 0px; padding: 0px; overflow: hidden;}
+#map { position:absolute; top:0; bottom:0; width:100%; height: 100%;}

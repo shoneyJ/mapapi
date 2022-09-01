@@ -14,26 +14,25 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://www.sitepoint.com/a-basic-html5-template/">
     <meta property="og:description" content="Draws Los Angeles subway network">
-    <meta property="og:image" content="image.png">
-
-    <link rel="icon" href="/favicon.ico">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
     <link rel="stylesheet" href="css/styles.css?v=1.0">
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-core.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-service.js"></script>
+    <script type="text/javascript" src="https://js.api.here.com/v3/3.1/mapsjs-mapevents.js"></script>
 
 </head>
 
 <body>
     <div id='container'>
-        hello world
+        <div id="map"></div>
+
     </div>
     <!-- sha1 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <!-- sha256 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/hmac-sha256.min.js"></script>
     <script type="module" src="js/oauth-1.0a.js"></script>
-    <script type="module" src="js/here-authentication.js"></script>
+    <script type="module" src="js/here-api.js"></script>
 </body>
 
 </html>
