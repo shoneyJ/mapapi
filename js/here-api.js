@@ -83,18 +83,33 @@ var here = (() => {
 
     let token = "";
 
-    var init = async () => {
-        token = document.cookie != "" ? JSON.parse(document.cookie) : {};
+    var init = () => {
 
-        if (token.access_token == undefined) {
-            await generateToken();
-            token = JSON.parse(document.cookie)
-        }
+        return new Promise((resolve, reject) => {
+            token = document.cookie != "" ? JSON.parse(document.cookie) : {};
+
+            if (token.access_token == undefined) {
+
+                let tokenPromise = generateToken();
+
+                tokenPromise.then((result) => {
+                    token = JSON.parse(document.cookie);
+                    resolve(token);
+                }, (error) => { })
+            } else {
+                resolve(token);
+            }
+
+        })
+
     }
 
     var getStations = async (coords) => {
 
-        await init();
+        let initPromise = init();
+
+        var token = await initPromise;
+
         get('https://transit.hereapi.com/v8/stations', { in: coords, maxPlaces: 50, return: 'transport' }, token.access_token)
             .then(response => {
 
@@ -104,13 +119,13 @@ var here = (() => {
 
                     // get only subway transport
                     if (station.transports != undefined) {
-                        
+
                         if (station.transports.find((x) => x.mode == 'subway') != undefined) {
-                          
+
                             Mymap.addMarker(station.place.location);
 
-                            station.transports.forEach((val,index)=>{
-                                getGeoCoding(val.headsign+' Los Angeles').then(res=>console.log(res));
+                            station.transports.forEach((val, index) => {
+                                getGeoCoding(val.headsign + ' Los Angeles').then(res => console.log(res));
                             })
                         }
 
