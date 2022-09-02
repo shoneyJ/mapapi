@@ -1,5 +1,32 @@
 import generateToken from "./here-authentication.js";
 import { here_apiKey } from '../config.js'
+
+
+const request = (url, params = {}, method = 'GET', token = '') => {
+    let options = {
+        method
+    };
+    if ('GET' === method) {
+        url += '?' + (new URLSearchParams(params)).toString();
+    } else {
+        options.body = JSON.stringify(params);
+    }
+
+    if (token != '') {
+        options.headers = {
+            'Authorization': 'Bearer ' + token
+        }
+    }
+
+    return fetch(url, options).then(response => response.json()).catch(function (err) {
+        // Log any errors
+        console.log('something went wrong', err);
+
+    });
+};
+const get = (url, params, token) => request(url, params, 'GET', token);
+const post = (url, params) => request(url, params, 'POST');
+
 var Mymap = (() => {
 
     var map = null;
@@ -57,54 +84,74 @@ var here = (() => {
     let token = "";
 
     var init = async () => {
-        token = document.cookie;
-        if (token != "") {
-            token = JSON.parse(document.cookie)
-        } else {
+        token = document.cookie != "" ? JSON.parse(document.cookie) : {};
+
+        if (token.access_token == undefined) {
             await generateToken();
             token = JSON.parse(document.cookie)
         }
     }
 
-    var getStations = (coords) => {
+    var getStations = async (coords) => {
 
-        init();
+        await init();
+        get('https://transit.hereapi.com/v8/stations', { in: coords, maxPlaces: 50, return: 'transport' }, token.access_token)
+            .then(response => {
 
-        fetch('https://transit.hereapi.com/v8/stations?in=' + coords + '&mode=subway&r=230136', {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': 'Bearer ' + token.access_token
-            }
-        }).then(function (resp) {
+                let { stations } = response;
 
-            // Return the response as JSON
-            return resp.json();
+                stations.forEach((station) => {
 
-        }).then(function (data) {
-            // Log the API data
-            console.log('data', data);
+                    // get only subway transport
+                    if (station.transports != undefined) {
+                        
+                        if (station.transports.find((x) => x.mode == 'subway') != undefined) {
+                          
+                            Mymap.addMarker(station.place.location);
 
-            let { stations } = data;
+                            station.transports.forEach((val,index)=>{
+                                getGeoCoding(val.headsign+' Los Angeles').then(res=>console.log(res));
+                            })
+                        }
 
-            stations.forEach((station) => {
+                    }
 
-                Mymap.addMarker(station.place.location);
-
-
+                })
             })
+    }
+
+    // here map get 500 meter radius stations so need new centre to search from 
+    var getNewCentre = (lat, long) => {
+
+        var meters = 0.2;
+        // number of km per degree = ~111km (111.32 in google maps, but range varies
+        //    between 110.567km at the equator and 111.699km at the poles)
+        var coef = meters / 111.32;
+
+        var new_lat = lat + coef;
+
+        // pi / 180 ~= 0.01745
+        var new_long = long + coef / Math.cos(lat * 0.01745);
+
+        return {
+            lat: new_lat,
+            lng: new_long
+        }
 
 
+    }
 
-        }).catch(function (err) {
-            // Log any errors
-            console.log('something went wrong', err);
+    var getGeoCoding = (address) => {
+        return get('https://geocode.search.hereapi.com/v1/geocode', { q: address, in: 'countryCode:USA', apiKey: here_apiKey })
+            .then(response => response);
 
-        });
+
     }
 
     return {
-        getStations: getStations
+        getStations: getStations,
+        getNewCentre: getNewCentre,
+        getGeoCoding: getGeoCoding
     }
 
 
@@ -114,6 +161,6 @@ var here = (() => {
 Mymap.Init({ lat: 34.052235, lng: -118.243683 });
 
 
+here.getStations('34.056197,-118.234249')
 
-here.getStations('34.056197,-118.234249');
 
