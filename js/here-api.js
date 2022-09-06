@@ -86,18 +86,28 @@ var here = (() => {
     var init = () => {
 
         return new Promise((resolve, reject) => {
-            token = document.cookie != "" ? JSON.parse(document.cookie) : {};
 
-            if (token.access_token == undefined) {
+            if (document.cookie != "" && document.cookie.includes('access_token')) {
+                var startPos = document.cookie.indexOf('{"access_token');
+                var cookieLen = document.cookie.length;
+                var cookieString = document.cookie.substring(startPos, cookieLen);
+                var endPos = cookieString.indexOf('}');
 
-                let tokenPromise = generateToken();
+                var tokenString = cookieString.substring(0, endPos + 1);
 
-                tokenPromise.then((result) => {
-                    token = JSON.parse(document.cookie);
+                token = JSON.parse(tokenString);
+
+                if (token.access_token == undefined) {
+
+                    let tokenPromise = generateToken();
+
+                    tokenPromise.then((result) => {
+                        token = JSON.parse(document.cookie);
+                        resolve(token);
+                    }, (error) => { })
+                } else {
                     resolve(token);
-                }, (error) => { })
-            } else {
-                resolve(token);
+                }
             }
 
         })
